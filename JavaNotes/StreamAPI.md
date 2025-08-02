@@ -133,7 +133,7 @@ List<CrewMember> activeDelhiCrew = crewList.stream()
 
   .filter(crew -> crew.getBase().equals("DEL")) 
   ✅ Lambda expression** is used here because we are **comparing** the result of `getBase()` with `"DEL"`.  
-  ❌ This cannot be replaced with a method reference, since method references **cannot include comparisons** like `.equals("DEL")`.
+  ❌ This cannot be replaced with a method reference, since method references cannot include comparisons like .equals("DEL").
 
   .filter(CrewMember::isOnDuty) 
   ✅ This is a method reference, a cleaner version of:  
