@@ -105,9 +105,11 @@ private List<CrewMember> getCrewList() {
 ```
 
 # Filter
-filter() is an intermediate operation.
-It allows you to select elements from a stream that match a given condition (predicate).
-It returns a new stream containing only the elements that match the condition.
+
+1. filter() is an intermediate operation.
+2. It allows you to select elements from a stream that match a given condition (predicate).
+3. It returns a new stream containing only the elements that match the condition.
+
 ```java
 
 // Get all Captains from the crew list
@@ -145,16 +147,67 @@ List<CrewMember> activeDelhiCrew = crewList.stream()
 The condition inside filter() must always evaluate to a true or false (i.e., a boolean), either via lambda or method reference.
 ```
 # Map
-map() produces a new stream after applying a function to each element of the original stream. The new stream could be of different type.
-```java
-        long femalesMoreThan24y= footballerList.stream()
-                .filter(footballer -> footballer.getGender().equals(Gender.FEMALE))
-                .map(Footballer::getAge)
-                .filter(age -> age > 24)
-                .count();
 
-        System.out.println("femalesMoreThan24y = " + femalesMoreThan24y);
-        //prints femalesMoreThan24y = 2
+1. The word **map** means “to transform” or “to convert.”  
+2. `map()` produces a new stream after applying a function to each element of the original stream.
+3. The new stream could be of a different type.
+4. It is commonly used to extract, transform, or modify data in a stream pipeline.
+5. filter() is used to select elements based on a condition, while map() is used to transform each element into a new form.
+
+```java
+    //  Get All Crew Names
+List<String> crewNames = crewList.stream()
+    .map(CrewMember::getName)  // converts CrewMember to String (name)
+    .collect(Collectors.toList());
+
+// Extract Ages
+List<Integer> ages = crewList.stream()
+    .map(CrewMember::getAge)
+    .collect(Collectors.toList());
+
+// Extract emails domains
+List<String> domains = crewList.stream()
+    .map(CrewMember::getEmailId)
+    .map(email -> email.substring(email.indexOf('@') + 1))
+    .collect(Collectors.toList());
+
+
+Here's a more advanced and real-world-style map() example using your CrewMember dataset.  
+We'll convert each crew member into a custom DTO (Data Transfer Object) that contains only selected and transformed fields, such as:  
+- name in uppercase  
+- experience level (based on flying hours)  
+- languages as a comma-separated string  
+- and days since last duty
+
+public class CrewSummaryDTO {
+    private String name;
+    private String experienceLevel;
+    private String languagesSpoken;
+    private long daysSinceLastDuty;
+
+    public CrewSummaryDTO(String name, String experienceLevel, String languagesSpoken, long daysSinceLastDuty) {
+        this.name = name;
+        this.experienceLevel = experienceLevel;
+        this.languagesSpoken = languagesSpoken;
+        this.daysSinceLastDuty = daysSinceLastDuty;
+    }
+
+    // Getters, toString(), etc. (optional)
+}
+// Map CrewMember to DTO
+List<CrewSummaryDTO> summaries = crewList.stream()
+    .map(crew -> {
+        String name = crew.getName().toUpperCase();
+        String experienceLevel = crew.getFlyingHours() >= 2000 ? "Veteran"
+                                : crew.getFlyingHours() >= 1000 ? "Experienced"
+                                : "Junior";
+        String languages = String.join(", ", crew.getLanguages());
+        long daysSinceLastDuty = ChronoUnit.DAYS.between(crew.getLastDutyDate(), LocalDate.now());
+        return new CrewSummaryDTO(name, experienceLevel, languages, daysSinceLastDuty);
+    })
+    .collect(Collectors.toList());
+
+
 ```
 # FlatMap
 A stream can hold complex data structures like Stream<List<String>>. In cases like this, flatMap() helps us to flatten the data structure to simplify further operations.
