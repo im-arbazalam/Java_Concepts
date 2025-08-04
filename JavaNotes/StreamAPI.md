@@ -212,79 +212,92 @@ List<CrewSummaryDTO> summaries = crewList.stream()
 # FlatMap
 A stream can hold complex data structures like Stream<List<String>>. In cases like this, flatMap() helps us to flatten the data structure to simplify further operations.
 ```java
-        String allPositionsOfMaleLessThan30y = footballerList.stream()
-                .filter(footballer -> footballer.getGender().equals(Gender.MALE))
-                .filter(footballer -> footballer.getAge() < 30)
-                .map(Footballer::getPositions)
-                .flatMap(Collection::stream)
-                .collect(Collectors.joining(","));
+// using Map
+     crewList.stream()
+    .map(CrewMember::getLanguages)
+    // Returns Stream<List<String>>
 
-        System.out.println("allPositionsOfMaleLessThan30y = " + allPositionsOfMaleLessThan30y);
-        //prints allPositionsOfMaleLessThan30y = CF,CAM,LF,CM,CAM,GK,CM,CDM
+// using flatMap
+crewList.stream()
+    .flatMap(crew -> crew.getLanguages().stream())
+    // Returns Stream<String> → all languages flattened
+
+List<String> allLanguages = crewList.stream()
+    .flatMap(crew -> crew.getLanguages().stream())
+    .distinct()
+    .collect(Collectors.toList());
+
 ```
 # Distinct
 Returns distinct elements in the stream, eliminating duplicates. It uses the equals() method of the elements to decide whether two elements are equal or not.
 ```java
-        String allUniquePositionsOfMaleLessThan30y = footballerList.stream()
-                .filter(footballer -> footballer.getGender().equals(Gender.MALE))
-                .filter(footballer -> footballer.getAge() < 30)
-                .map(Footballer::getPositions)
-                .flatMap(Collection::stream)
-                .distinct()
-                .collect(Collectors.joining(","));
+     String uniqueLanguagesOfOnDutyCrew = crewList.stream()
+    .filter(CrewMember::isOnDuty)                       // Only crew members currently on duty
+    .map(CrewMember::getLanguages)                      // Get list of languages each crew member knows
+    .flatMap(List::stream)                              // Flatten into a single Stream<String>
+    .distinct()                                         // Remove duplicates
+    .sorted()                                           // Optional: Sort alphabetically
+    .collect(Collectors.joining(", "));                 // Join all languages with comma
 
-        System.out.println("allUniquePositionsOfMaleLessThan30y = " + allUniquePositionsOfMaleLessThan30y);
-        //prints allUniquePositionsOfMaleLessThan30y = CF,CAM,LF,CM,GK,CDM
+System.out.println("uniqueLanguagesOfOnDutyCrew = " + uniqueLanguagesOfOnDutyCrew);
 ```
 # Sorted
-The ‘sorted’ method is used to sort the stream.
+1. The ‘sorted’ method is used to sort the stream.
+2. Syntax (Basic Form) -------- stream().sorted()
+3. Syntax (With Comparator) ----------- .stream().sorted(Comparator.comparing(...))
 ```java
-        List<Footballer>  sortByGenderAndName= footballerList.stream()
-                .sorted(Comparator.comparing(Footballer::getGender).thenComparing(Footballer::getName))
-                .collect(Collectors.toList());
 
-        System.out.println("sortByGenderAndName = " + sortByGenderAndName);
-        
-        //prints (prettified) sortByGenderAndName = [
-//Footballer{name='Arthur', age=23, gender=MALE, positions=[CM, CAM]}, 
-//Footballer{name='Griezmann', age=28, gender=MALE, positions=[CF, CAM, LF]}, 
-//Footballer{name='Messi', age=32, gender=MALE, positions=[CF, CAM, RF]}, 
-//Footballer{name='Puig', age=20, gender=MALE, positions=[CM, CDM]}, 
-//Footballer{name='Ter Stegen', age=27, gender=MALE, positions=[GK]},
-//Footballer{name='Alexia', age=25, gender=FEMALE, positions=[CAM, RF, LF]}, 
-//Footballer{name='Jana', age=17, gender=FEMALE, positions=[CB]}, 
-//Footballer{name='Jennifer', age=29, gender=FEMALE, positions=[CF, CAM]}, 
-//]
+// Sort CrewMember by Base
+List<CrewMember> sortedByBaseThenName = crewList.stream()
+    .sorted(Comparator.comparing(CrewMember::getBase)
+                      .thenComparing(CrewMember::getName))
+    .collect(Collectors.toList());
+
+// Sort by descending flyingHours
+List<CrewMember> sortByFlyingHoursDesc = crewList.stream()
+    .sorted(Comparator.comparingDouble(CrewMember::getFlyingHours).reversed())
+    .collect(Collectors.toList());
+
+
 ```
 # Peek
-It performs the specified operation on each element of the stream and returns a new stream which can be used further.
-```java        
-        long malePlayerCount = footballerList.stream()
-                .filter(footballer -> footballer.getGender().equals(Gender.MALE))
-                .sorted(Comparator.comparing(Footballer::getAge))
-                .peek(footballer -> {
-                    System.out.println("footballer = " + footballer);
-                })
-                .count();
+1. It performs the specified operation on each element of the stream and returns a new stream which can be used further.
+2. The peek() method is an intermediate operation that allows you to inspect or perform an action on each element of the stream without modifying it.
 
-        System.out.println("malePlayerCount = " + malePlayerCount);
-//        prints
-//        footballer = Footballer{name='Puig', age=20, gender=MALE, positions=[CM, CDM]}
-//        footballer = Footballer{name='Arthur', age=23, gender=MALE, positions=[CM, CAM]}
-//        footballer = Footballer{name='Ter Stegen', age=27, gender=MALE, positions=[GK]}
-//        footballer = Footballer{name='Griezmann', age=28, gender=MALE, positions=[CF, CAM, LF]}
-//        footballer = Footballer{name='Messi', age=32, gender=MALE, positions=[CF, CAM, RF]}
-//        malePlayerCount = 5
+📌 Useful for debugging, logging, or temporarily monitoring the stream pipeline.
+```java
+
+List<CrewMember> delhiCrew = crewList.stream()
+    .filter(crew -> crew.getBase().equals("DEL"))
+    .peek(crew -> System.out.println("Passing: " + crew.getName() + " from " + crew.getBase()))
+    .collect(Collectors.toList());
+
+
+long onDutyCount = crewList.stream()
+    .peek(crew -> System.out.println("Checking duty: " + crew.getName()))
+    .filter(CrewMember::isOnDuty)
+    .peek(crew -> System.out.println("On duty: " + crew.getName()))
+    .count();
+
+
+List<String> emails = crewList.stream()
+    .peek(crew -> System.out.println("Original: " + crew.getName()))
+    .filter(CrewMember::isOnDuty)
+    .peek(crew -> System.out.println("Active: " + crew.getName()))
+    .map(CrewMember::getEmailId)
+    .peek(email -> System.out.println("Email Collected: " + email))
+    .collect(Collectors.toList());       
+
 ```
 # Limit
-The ‘limit’ method is used to reduce the size of the stream.
+The ‘limit’ method is used to reduce the size of the stream.   limit(n)
 ```java
-        List<Footballer> twoMaleFootballers = footballerList.stream()
-                .filter(footballer -> footballer.getGender().equals(Gender.MALE))
-                .limit(2)
-                .collect(Collectors.toList());
-                //prints 
-                //twoMaleFootballers = [Footballer{name='Messi', age=32, gender=MALE, positions=[CF, CAM, RF]}, Footballer{name='Griezmann', age=28, gender=MALE, positions=[CF, CAM, LF]}]
+
+//Get first three onDuty crew member
+       List<CrewMember> firstThreeOnDuty = crewList.stream()
+    .filter(CrewMember::isOnDuty)
+    .limit(3)
+    .collect(Collectors.toList());
 
 ```
 # Skip
