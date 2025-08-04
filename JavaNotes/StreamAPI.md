@@ -568,8 +568,7 @@ Map<String, Map<String, List<CrewMember>>> crewByBaseAndAgeGroup = crewList.stre
 
 
 ```
-# Collectors.groupingBy()
-```java
+# Collectors.partitioningBy()
 1. The **partitioningBy()** method is a special case of groupingBy() that divides your stream into two groups:
 One where the predicate is true
 One where the predicate is false
@@ -577,7 +576,7 @@ One where the predicate is false
 📦 It always returns a Map<Boolean, List<T>>.
 
 Map<Boolean, List<T>> result = stream.collect(Collectors.partitioningBy(predicate));
-
+```java
 //  Partition crew into on duty and off duty groups:
 Map<Boolean, List<CrewMember>> crewPartitionedByDuty = crewList.stream()
     .collect(Collectors.partitioningBy(CrewMember::isOnDuty));
