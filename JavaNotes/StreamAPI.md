@@ -260,6 +260,9 @@ List<CrewMember> sortByFlyingHoursDesc = crewList.stream()
 
 
 ```
+
+
+
 # Peek
 1. It performs the specified operation on each element of the stream and returns a new stream which can be used further.
 2. The peek() method is an intermediate operation that allows you to inspect or perform an action on each element of the stream without modifying it.
@@ -343,15 +346,14 @@ The ‘limit’ method is used to reduce the size of the stream.   limit(n)
         //prints dropWhile = [9, 10, 11, 12]
 ```
 # Count
+The count() method is a terminal operation that returns the number of elements in the stream.
 ```java
-        long femalesMoreThan24y= footballerList.stream()
-                .filter(footballer -> footballer.getGender().equals(Gender.FEMALE))
-                .map(Footballer::getAge)
-                .filter(age -> age > 24)
-                .count();
 
-        System.out.println("femalesMoreThan24y = " + femalesMoreThan24y);
-        //prints femalesMoreThan24y = 2
+//  Count total on-duty crew based in DEL
+    long delhiOnDutyCount = crewList.stream()
+    .filter(crew -> crew.getBase().equals("DEL"))
+    .filter(CrewMember::isOnDuty)
+    .count();
 ```
 # For Each
 It loops over the stream elements, calling the supplied function on each element.
@@ -391,35 +393,31 @@ List.of(4,1,6,7,19,2,3,81,64).stream()
 # To Array
 If we need to get an array out of the stream, we can simply use toArray().
 ```java
-        Footballer[] femaleFootballers = footballerList.stream()
-                .filter(footballer -> footballer.getGender().equals(Gender.FEMALE))
-                .toArray(Footballer[]::new);
+    // Get an array of crew members who are on-duty
+CrewMember[] onDutyCrewArray = crewList.stream()
+        .filter(CrewMember::isOnDuty)
+        .toArray(CrewMember[]::new);
 
-        System.out.println("femaleFootballers = " + Arrays.asList(femaleFootballers));
-        //prints To Array femaleFootballers = [Footballer{name='Jennifer', age=29, gender=FEMALE, positions=[CF, CAM]}, Footballer{name='Jana', age=17, gender=FEMALE, positions=[CB]}, Footballer{name='Alexia', age=25, gender=FEMALE, positions=[CAM, RF, LF]}]
+System.out.println("onDutyCrewArray = " + Arrays.asList(onDutyCrewArray));
+// Example output: [CrewMember{name='Ayesha'...}, CrewMember{name='Rahul'...}]
 
 ```
 # Min
 Returns the minimum element in the stream.
 ```java
-        Integer minAge = footballerList.stream()
-                .min(Comparator.comparing(Footballer::getAge))
-                .map(Footballer::getAge)
-                .get();
-
-        System.out.println("min age = " + minAge);
-        //prints min age = 17
+   // Finding the minimum age among all crew members
+Integer minAge = crewList.stream()
+        .min(Comparator.comparing(CrewMember::getAge))
+        .map(CrewMember::getAge)
+        .get();
 ```
 # Max
 Returns the maximum element in the stream.
 ```java
-        Integer maxAge = footballerList.stream()
-                .max(Comparator.comparing(Footballer::getAge))
-                .map(Footballer::getAge)
-                .get();
-
-        System.out.println("max age = " + maxAge);
-        //prints max age = 32
+  Integer maxAge = crewList.stream()
+        .max(Comparator.comparing(CrewMember::getAge))
+        .map(CrewMember::getAge)
+        .get();
 ```
 # Any Match
 anyMatch() checks if the predicate is true for any one element in the stream.
@@ -493,6 +491,84 @@ findFirst() returns an Optional for the first entry in the stream; the Optional 
                 //{name='Jennifer', age=29, gender=FEMALE, positions=[CF, CAM]} &
                 //{name='Alexia', age=25, gender=FEMALE, positions=[CAM, RF, LF]}
 ```
+
+# Collectors.groupingBy()
+1. Collectors.groupingBy() is a collector used with .collect() to group stream elements based on a classifier function.
+2. The result is a Map<K, List<T>>, where:
+K is the key returned by the classifier function.
+List<T> contains the elements that share that key.
+```java
+
+//  Group CrewMembers by Base
+Map<String, List<CrewMember>> crewByBase = crewList.stream()
+    .collect(Collectors.groupingBy(CrewMember::getBase));
+
+// Group by On-Duty Status
+Map<Boolean, List<CrewMember>> crewByDutyStatus = crewList.stream()
+    .collect(Collectors.groupingBy(CrewMember::isOnDuty));
+
+//  Group by Experience Level (Custom Classifier)
+private static String getExperienceLevel(int flyingHours) {
+    if (flyingHours > 5000) return "Veteran";
+    else if (flyingHours > 2000) return "Experienced";
+    else return "Novice";
+}
+
+Map<String, List<CrewMember>> crewByExperience = crewList.stream()
+    .collect(Collectors.groupingBy(crew -> getExperienceLevel(crew.getFlyingHours())));
+
+In Collectors.groupingBy(), you can define both the key and the value transformation, giving you full control over how to group and what to collect.
+
+// Group and map values (transform collected values)
+Map<String, List<String>> baseToNames = crewList.stream()
+    .collect(Collectors.groupingBy(
+        CrewMember::getBase, // Key: base
+        Collectors.mapping(CrewMember::getName, Collectors.toList()) // Value: List of names
+    ));
+
+//  Group and count
+Map<String, Long> baseToCount = crewList.stream()
+    .collect(Collectors.groupingBy(
+        CrewMember::getBase,
+        Collectors.counting()
+    ));
+
+//  What is Multi-Level Grouping?
+It means grouping by more than one level — like grouping crew by base, and then within each base, grouping by whether they are on duty.
+
+Map<String, Map<Boolean, List<CrewMember>>> crewGroupedByBaseAndDuty = crewList.stream()
+    .collect(Collectors.groupingBy(
+        CrewMember::getBase,                              // 1st level grouping (Base)
+        Collectors.groupingBy(CrewMember::isOnDuty)       // 2nd level grouping (OnDuty status)
+    ));
+
+
+// More Advanced Example (Grouping + Mapping)
+// Group by base → then get a list of crew names who are on duty:
+
+Map<String, List<String>> dutyCrewNamesByBase = crewList.stream()
+    .filter(CrewMember::isOnDuty)
+    .collect(Collectors.groupingBy(
+        CrewMember::getBase,
+        Collectors.mapping(CrewMember::getName, Collectors.toList())
+    ));
+
+//  Even Deeper: Group by base, then age category
+
+Map<String, Map<String, List<CrewMember>>> crewByBaseAndAgeGroup = crewList.stream()
+    .collect(Collectors.groupingBy(
+        CrewMember::getBase,
+        Collectors.groupingBy(crew -> {
+            int age = crew.getAge();
+            if (age < 25) return "Young";
+            else if (age <= 35) return "Mid-age";
+            else return "Senior";
+        })
+    ));
+
+
+```
+
 ## Reference
 1. [Stackify](https://stackify.com/streams-guide-java-8/)
 2. [Advanced Java Programming](https://www.rokomari.com/book/179965/advanced-java-programing)
