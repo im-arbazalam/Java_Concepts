@@ -4,6 +4,10 @@ The **Java Stream API** (introduced in Java 8) allows you to process collections
 
 The Stream API enhances performance through lazy evaluation and support for parallel processing. This means operations are only executed when needed, and large data sets can be processed across multiple threads efficiently.
 
+The Java Stream API, introduced in Java 8, provides a functional programming approach to processing sequences of elements. It helps write cleaner, more expressive code for tasks like filtering, mapping, and reducing data, all while improving readability and maintainability.
+
+Intermediate operations (like map() or filter()) transform or filter data and return another stream, allowing method chaining. Terminal operations (like collect() or forEach()) produce a result or side effect and mark the end of the stream pipeline.
+
 ## ✅ Why Use Stream API?
 
 - 🚀 **Simplifies complex logic** using clean, readable code.
@@ -591,6 +595,48 @@ Map<Boolean, List<String>> dutyCrewNames = crewList.stream()
     ));
 ```
 
-## Reference
-1. [Stackify](https://stackify.com/streams-guide-java-8/)
-2. [Advanced Java Programming](https://www.rokomari.com/book/179965/advanced-java-programing)
+## Top 5 most important and frequently asked questions for Java Stream API
+  **What is the Java Stream API, and how is it different from a Collection?**
+
+  Key points:
+1. Stream is not a data structure. It’s a pipeline for processing data.
+2. A Collection (like List, Set) stores data.
+3. A Stream is used to process data functionally, and it doesn’t modify the original source.
+
+   **What is lazy evaluation in Streams? How does it work?**
+
+   Key points:
+1. Intermediate operations (filter(), map()) are lazy.
+2. They're only executed when a terminal operation (collect(), count()) is called.
+3. Enables short-circuiting and performance optimization.
+
+
+   **How does .parallelStream() work and when should you use it?**
+   Key points:
+1. Uses ForkJoinPool to process data in multiple threads.
+2. Best for large, CPU-intensive, independent tasks.
+3. Avoid if:
+Dataset is small
+Order matters
+You’re using shared mutable state
+
+
+**What are intermediate and terminal operations in Streams? Give examples.**
+
+Intermediate operations:
+1. Return a Stream
+2. Are lazy
+3. Examples: filter(), map(), sorted(), distinct()
+
+Terminal operations:
+1. Return a result or produce a side effect
+2. Trigger processing
+3. Examples: collect(), forEach(), reduce(), count()
+
+
+   **How would you use Stream API to group and summarize data?**
+```java
+Map<String, Long> countByRole = crewList.stream()
+    .collect(Collectors.groupingBy(CrewMember::getRole, Collectors.counting()));
+```
+
