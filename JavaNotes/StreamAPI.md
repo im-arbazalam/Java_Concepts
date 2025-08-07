@@ -609,6 +609,7 @@ Map<Boolean, List<String>> dutyCrewNames = crewList.stream()
 1. Intermediate operations (filter(), map()) are lazy.
 2. They're only executed when a terminal operation (collect(), count()) is called.
 3. Enables short-circuiting and performance optimization.
+4. Intermediate operations (like filter(), map(), and limit()) are not executed immediately. They’re only evaluated when a terminal operation (like collect() or forEach()) is called. This lazy evaluation allows the Stream API to optimize processing by skipping unnecessary steps—for example, stopping early when using limit()
 
 
    **How does .parallelStream() work and when should you use it?**
