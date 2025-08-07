@@ -2,6 +2,8 @@
 
 The **Java Stream API** (introduced in Java 8) allows you to process collections of data in a **functional and declarative** way. It works like a pipeline where data flows through multiple operations such as `filter`, `map`, and `collect`.
 
+The Stream API enhances performance through lazy evaluation and support for parallel processing. This means operations are only executed when needed, and large data sets can be processed across multiple threads efficiently.
+
 ## ✅ Why Use Stream API?
 
 - 🚀 **Simplifies complex logic** using clean, readable code.
